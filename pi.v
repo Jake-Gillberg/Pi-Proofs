@@ -42,13 +42,19 @@ Definition bn_pi (pi:Prefix) : Ensemble Name :=
   Setminus Name (n_pi pi) (fn_pi pi).
 
 Fixpoint fn (p:Process) : Ensemble Name :=
+  let fix fn_sum(s:Summation) : Ensemble Name :=
+    match s with
+    | (prefix pi p') =>
+        Union Name (Setminus Name (fn p') (bn_pi pi)) (fn_pi pi)
+    | (sum m m') =>
+        Union Name (fn_sum m) (fn_sum m')
+    | inaction =>
+        Empty_set Name
+    end
+  in
   match p with
-  | summation (prefix pi p') =>
-      Union Name (Setminus Name (fn p') (bn_pi pi)) (fn_pi pi)
-  | summation (sum m m') =>
-      Union Name (fn (summation m)) (fn (summation m'))
-  | summation inaction =>
-      Empty_set Name
+  | summation m =>
+      fn_sum m
   | composition p' p'' =>
       Union Name (fn p') (fn p'')
   | restriction z p' =>

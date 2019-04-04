@@ -1,7 +1,7 @@
 (* Definition 1.1.1 *)
+(* TODO: limit to lower-case? Finite set ranged over? *)
 Require Import Coq.Strings.String.
-(* Todo: restrict to lower-case letters. *)
-Inductive Name : Type := String.
+Inductive Name : Type := string: string -> Name.
 
 Inductive Prefix : Type :=
 | send : Name -> Name -> Prefix
@@ -62,3 +62,9 @@ Fixpoint fn (p:Process) : Ensemble Name :=
   | replication p' =>
       fn p'
   end.
+
+(* Definition 1.1.3 *)
+Require Import Coq.Sets.Finite_sets.
+Definition substitution (f:Name -> Name) :=
+  exists2 X: Ensemble Name, Finite Name X &
+   forall x, In Name X x -> f x <> x /\ ~ In Name X x -> f x = x.

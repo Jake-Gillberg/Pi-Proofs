@@ -44,24 +44,35 @@ Definition bn_pi (pi:Prefix) : Ensemble Name :=
 Fixpoint fn (p:Process) : Ensemble Name :=
   let fix fn_sum(s:Summation) : Ensemble Name :=
     match s with
-    | (prefix pi p') =>
-        Union Name (Setminus Name (fn p') (bn_pi pi)) (fn_pi pi)
-    | (sum m m') =>
-        Union Name (fn_sum m) (fn_sum m')
-    | inaction =>
-        Empty_set Name
+    | prefix pi p' => Union Name (Setminus Name (fn p') (bn_pi pi)) (fn_pi pi)
+    | sum m m' => Union Name (fn_sum m) (fn_sum m')
+    | inaction => Empty_set Name
     end
   in
   match p with
-  | summation m =>
-      fn_sum m
-  | composition p' p'' =>
-      Union Name (fn p') (fn p'')
-  | restriction z p' =>
-      Subtract Name (fn p') z
-  | replication p' =>
-      fn p'
+  | summation m => fn_sum m
+  | composition p' p'' => Union Name (fn p') (fn p'')
+  | restriction z p' => Subtract Name (fn p') z
+  | replication p' => fn p'
   end.
+
+Fixpoint n (p:Process) : Ensemble Name :=
+  let fix n_sum(s:Summation) : Ensemble Name :=
+    match s with
+    | prefix pi p' => Union Name (n p') (n_pi pi)
+    | sum m m' => Union Name (n_sum m) (n_sum m')
+    | inaction => Empty_set Name
+    end
+  in
+  match p with
+  | summation m => n_sum m
+  | composition p' p'' => Union Name (n p') (n p'')
+  | restriction z p' => Add Name (n p') z
+  | replication p' => n p'
+  end.
+
+Definition bn (p:Process) : Ensemble Name :=
+  Setminus Name (n p) (fn p).
 
 (* Definition 1.1.3 *)
 Require Import Coq.Sets.Finite_sets.

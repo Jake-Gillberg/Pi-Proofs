@@ -1,7 +1,7 @@
 (* Definition 1.1.1 *)
 (* TODO: limit to lower-case? Finite set ranged over? *)
 Require Import Coq.Strings.String.
-Inductive Name : Type := string: string -> Name.
+Inductive Name : Type := str : string -> Name.
 
 Inductive Prefix : Type :=
 | send : Name -> Name -> Prefix
@@ -19,6 +19,51 @@ with Summation : Type :=
 | inaction : Summation
 | prefix : Prefix -> Process -> Summation
 | sum : Summation -> Summation -> Summation.
+
+Definition summation_in_process (s:Summation) := summation s.
+Coercion summation_in_process : Summation >-> Process.
+
+Declare Custom Entry proc.
+Declare Custom Entry prefix.
+
+Notation "[ P ]" := P (P custom proc at level 2).
+
+Notation "P | P'" := (composition P P') (in custom proc at level 2, only parsing).
+Notation "M + M'" := (sum M M') (in custom proc at level 2, only parsing).
+Notation "pi , P" := (prefix pi P)
+  (in custom proc at level 1, pi custom prefix at level 2).
+Notation "'ν' z P" :=
+  (restriction z P) (in custom proc at level 1, z constr at level 1).
+Notation "! P" := (replication P) (in custom proc at level 1).
+Notation "∅" := (inaction) (in custom proc at level 0).
+
+Notation "x ! y" := (send (str x) (str y))
+  (in custom prefix at level 0, x constr at level 1, y constr at level 1).
+Notation "x ( y )" := (receive (str x) (str y))
+  (in custom prefix at level 0, x constr at level 1, y constr at level 1).
+Notation "[ x = y ] pi":= (conditional (str x) (str y) pi)
+  (in custom prefix at level 1, x constr at level 1, y constr at level 1, pi custom prefix at level 2).
+Notation "'τ'" := (unobservable) (in custom prefix at level 0).
+
+Example p_0: Process := summation [∅].
+Example p_tau: Process := summation [τ,∅].
+Example p_send: Process := ["x"!"y",∅].
+Example p_receive: Process := ["x"("y"),∅].
+Example p_conditional: Process := [["x" = "x"]"x"!"y",∅].
+Example p_1: Process := ["x"!"y",∅ | ∅].
+Print p_1.
+
+(* x(z).y̅z.0 *)
+Example p12_1: Process := ["x"("z"),"y"!"z",∅].
+Print p12_1.
+
+(* x(z).[z=y]z̅w.0 *)
+Example p12_2: Process := ["x"("z"),["z"="y"]"z"!"w",∅].
+Print p12_2.
+
+(* x(z).z̅y.0 + w̅v.0 *)
+Example p12_3: Process := ["x"!"w",∅ + "w"!"v",∅].
+Print p12_3.
 
 (* Definition 1.1.2 *)
 Require Import Coq.Sets.Ensembles.
@@ -79,3 +124,5 @@ Require Import Coq.Sets.Finite_sets.
 Definition substitution (f:Name -> Name) :=
   exists2 X: Ensemble Name, Finite Name X &
    forall x, In Name X x -> f x <> x /\ ~ In Name X x -> f x = x.
+
+(* Notation 1.1.4 *)

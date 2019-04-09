@@ -20,50 +20,69 @@ with Summation : Type :=
 | prefix : Prefix -> Process -> Summation
 | sum : Summation -> Summation -> Summation.
 
-Definition summation_in_process (s:Summation) := summation s.
+Definition summation_in_process (s:Summation) : Process := summation s.
 Coercion summation_in_process : Summation >-> Process.
 
 Declare Custom Entry proc.
 Declare Custom Entry prefix.
 
-Notation "[ P ]" := P (P custom proc at level 2).
+Notation "[ P ]" := P (P custom proc at level 2, only parsing).
 
 Notation "P | P'" := (composition P P') (in custom proc at level 2, only parsing).
 Notation "M + M'" := (sum M M') (in custom proc at level 2, only parsing).
 Notation "pi , P" := (prefix pi P)
-  (in custom proc at level 1, pi custom prefix at level 2).
+  (in custom proc at level 1, pi custom prefix at level 2, only parsing).
 Notation "'ν' z P" :=
-  (restriction z P) (in custom proc at level 1, z constr at level 1).
-Notation "! P" := (replication P) (in custom proc at level 1).
-Notation "∅" := (inaction) (in custom proc at level 0).
+  (restriction z P) (in custom proc at level 1, z constr at level 1, only parsing).
+Notation "! P" := (replication P) (in custom proc at level 1, only parsing).
+Notation "∅" := (inaction) (in custom proc at level 0, only parsing).
+Notation "P" := P (in custom proc at level 0, P ident).
 
 Notation "x ! y" := (send (str x) (str y))
-  (in custom prefix at level 0, x constr at level 1, y constr at level 1).
+  (in custom prefix at level 0, x constr at level 1, y constr at level 1, only parsing).
 Notation "x ( y )" := (receive (str x) (str y))
-  (in custom prefix at level 0, x constr at level 1, y constr at level 1).
+  (in custom prefix at level 0, x constr at level 1, y constr at level 1, only parsing).
 Notation "[ x = y ] pi":= (conditional (str x) (str y) pi)
-  (in custom prefix at level 1, x constr at level 1, y constr at level 1, pi custom prefix at level 2).
+  (in custom prefix at level 1, x constr at level 1, y constr at level 1, only parsing).
 Notation "'τ'" := (unobservable) (in custom prefix at level 0).
+Notation "pi" := pi (in custom prefix at level 0, pi ident).
 
-Example p_0: Process := summation [∅].
-Example p_tau: Process := summation [τ,∅].
-Example p_send: Process := ["x"!"y",∅].
-Example p_receive: Process := ["x"("y"),∅].
-Example p_conditional: Process := [["x" = "x"]"x"!"y",∅].
-Example p_1: Process := ["x"!"y",∅ | ∅].
-Print p_1.
-
-(* x(z).y̅z.0 *)
-Example p12_1: Process := ["x"("z"),"y"!"z",∅].
+(* 0 *)
+Example p12_1: Process := [∅].
 Print p12_1.
-
-(* x(z).[z=y]z̅w.0 *)
-Example p12_2: Process := ["x"("z"),["z"="y"]"z"!"w",∅].
+(* π.P *)
+Example p12_2 (π: Prefix) (P: Process): Process := [π,P].
 Print p12_2.
-
-(* x(z).z̅y.0 + w̅v.0 *)
-Example p12_3: Process := ["x"!"w",∅ + "w"!"v",∅].
+(* x̅y.P *)
+Example p12_3 (P: Process): Process := ["x"!"y",P].
 Print p12_3.
+(* x(z).P *)
+Example p12_4 (P: Process): Process := ["x"("z"),P].
+Print p12_4.
+(* x(z).y̅z.0 *)
+Example p12_5: Process := ["x"("z"),"y"!"z",∅].
+Print p12_5.
+(* x(z).z̅y.0 *)
+Example p12_6: Process := ["x"("z"),"z"!"y",∅].
+Print p12_6.
+(* τ.P *)
+Example p12_7 (P: Process) : Process := [τ,P].
+Print p12_7.
+(* [x=y]π.P *)
+Example p12_8 (π: Prefix) (P: Process) := [["x"="y"]π,P].
+Print p12_8.
+(* x(z).[z=y]z̅w.0 *)
+Example p12_9: Process := ["x"("z"),["z"="y"]"z"!"w",∅].
+Print p12_9.
+(* x(z).y(w).[z=w]v̅u.0 *)
+Example p12_10: Process := ["x"("z"),"y"("w"),["z"="w"]"v"!"u",∅].
+Print p12_10.
+(* P + P' *)
+Example p12_11 (P:Process) (P':Process) : Process := [P + P'].
+Print p12_11.
+(* x(z).z̅y.0 + w̅v.0 *)
+Example p12_4: Process := ["x"!"w",∅ + "w"!"v",∅].
+Print p12_4.
 
 (* Definition 1.1.2 *)
 Require Import Coq.Sets.Ensembles.

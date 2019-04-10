@@ -25,64 +25,87 @@ Coercion summation_in_process : Summation >-> Process.
 
 Declare Custom Entry proc.
 Declare Custom Entry prefix.
+Declare Custom Entry name.
 
-Notation "[ P ]" := P (P custom proc at level 2, only parsing).
+Notation "[ P ]" := P (P custom proc at level 3, only parsing).
 
-Notation "P | P'" := (composition P P') (in custom proc at level 2, only parsing).
-Notation "M + M'" := (sum M M') (in custom proc at level 2, only parsing).
+Notation "P | P'" := (composition P P') (in custom proc at level 2, left associativity, only parsing).
+Notation "M + M'" := (sum M M') (in custom proc at level 3, left associativity, only parsing).
 Notation "pi , P" := (prefix pi P)
-  (in custom proc at level 1, pi custom prefix at level 2, only parsing).
+  (in custom proc at level 1, pi custom prefix at level 2, right associativity, only parsing).
 Notation "'ν' z P" :=
-  (restriction z P) (in custom proc at level 1, z constr at level 1, only parsing).
+  (restriction z P) (in custom proc at level 1, z custom name at level 2, right associativity, only parsing).
 Notation "! P" := (replication P) (in custom proc at level 1, only parsing).
 Notation "∅" := (inaction) (in custom proc at level 0, only parsing).
+Notation "( P )" := P (in custom proc at level 3).
 Notation "P" := P (in custom proc at level 0, P ident).
 
-Notation "x ! y" := (send (str x) (str y))
-  (in custom prefix at level 0, x constr at level 1, y constr at level 1, only parsing).
-Notation "x ( y )" := (receive (str x) (str y))
-  (in custom prefix at level 0, x constr at level 1, y constr at level 1, only parsing).
-Notation "[ x = y ] pi":= (conditional (str x) (str y) pi)
-  (in custom prefix at level 1, x constr at level 1, y constr at level 1, only parsing).
-Notation "'τ'" := (unobservable) (in custom prefix at level 0).
-Notation "pi" := pi (in custom prefix at level 0, pi ident).
+Notation "{ x ! y }" := (send x y)
+  (in custom prefix at level 0, x custom name at level 2, y custom name at level 2, only parsing).
+Notation "{ x ( z ) }" := (receive x z)
+  (in custom prefix at level 0, x custom name at level 2, z custom name at level 2, only parsing).
+Notation "{ [ x = y ] pi }":= (conditional x y pi)
+  (in custom prefix at level 1, x custom name at level 2, y custom name at level 2, right associativity, only parsing).
+Notation "{ 'τ' }" := (unobservable) (in custom prefix at level 0).
+Notation "{ pi }" := pi (in custom prefix at level 0, pi ident).
+
+Notation "x" := (str x%string) (in custom name at level 1, x constr at level 1).
+Notation "< x >" := x (in custom name at level 0, x constr at level 1).
 
 (* 0 *)
 Example p12_1: Process := [∅].
 Print p12_1.
 (* π.P *)
-Example p12_2 (π: Prefix) (P: Process): Process := [π,P].
+Example p12_2 (π: Prefix) (P: Process): Process := [{π},P].
 Print p12_2.
 (* x̅y.P *)
-Example p12_3 (P: Process): Process := ["x"!"y",P].
+Example p12_3 (P: Process): Process := [{"x"!"y"},P].
 Print p12_3.
 (* x(z).P *)
-Example p12_4 (P: Process): Process := ["x"("z"),P].
+Example p12_4 (P: Process): Process := [{"x"("z")},P].
 Print p12_4.
 (* x(z).y̅z.0 *)
-Example p12_5: Process := ["x"("z"),"y"!"z",∅].
+Example p12_5: Process := [{"x"("z")},{"y"!"z"},∅].
 Print p12_5.
 (* x(z).z̅y.0 *)
-Example p12_6: Process := ["x"("z"),"z"!"y",∅].
+Example p12_6: Process := [{"x"("z")},{"z"!"y"},∅].
 Print p12_6.
 (* τ.P *)
-Example p12_7 (P: Process) : Process := [τ,P].
+Example p12_7 (P: Process) : Process := [{τ},P].
 Print p12_7.
 (* [x=y]π.P *)
-Example p12_8 (π: Prefix) (P: Process) := [["x"="y"]π,P].
+Example p12_8 (π: Prefix) (P: Process) := [{["x"="y"]{π}},P].
 Print p12_8.
 (* x(z).[z=y]z̅w.0 *)
-Example p12_9: Process := ["x"("z"),["z"="y"]"z"!"w",∅].
+Example p12_9: Process := [{"x"("z")},{["z"="y"]{"z"!"w"}},∅].
 Print p12_9.
 (* x(z).y(w).[z=w]v̅u.0 *)
-Example p12_10: Process := ["x"("z"),"y"("w"),["z"="w"]"v"!"u",∅].
+Example p12_10: Process := [{"x"("z")},{"y"("w")},{["z"="w"]{"v"!"u"}},∅].
 Print p12_10.
 (* P + P' *)
-Example p12_11 (P:Process) (P':Process) : Process := [P + P'].
+Example p12_11 (P:Summation) (P':Summation) : Process := [P + P'].
 Print p12_11.
 (* x(z).z̅y.0 + w̅v.0 *)
-Example p12_4: Process := ["x"!"w",∅ + "w"!"v",∅].
-Print p12_4.
+Example p12_12: Process := [{"x"("z")},{"z"!"y"},∅ + {"w"!"v"},∅].
+Print p12_12.
+(* P | P' *)
+Example p12_13 (P:Process) (P':Process) : Process := [P | P'].
+Print p12_13.
+(* (x(z).z̅y.0 + w̅v.0) | x̅u.0 *)
+Example p12_14 : Process := [({"x"("z")},{"z"!"y"},∅ + {"w"!"v"},∅) | {"x"!"u"},∅].
+Print p12_14.
+(* νz P *)
+Example p12_15 (z:Name) (P:Process) : Process := [ν <z> P].
+Print p12_15.
+(* νx((x(z).z̅y.0 + w̅v.0) |  x̅u.0) *)
+Example p12_16 : Process := [ν "x" (({"x"("z")},{"z"!"y"},∅ + {"w"!"v"},∅) | {"x"!"u"},∅)].
+Print p12_16.
+(* !P *)
+Example p13_1 (P:Process) : Process := [!P].
+Print p13_1.
+(* !x(z).!y̅z.0 *)
+Example p13_2 : Process := [!{"x"("z")},!{"y"!"z"},∅].
+Print p13_2.
 
 (* Definition 1.1.2 *)
 Require Import Coq.Sets.Ensembles.
@@ -137,6 +160,22 @@ Fixpoint n (p:Process) : Ensemble Name :=
 
 Definition bn (p:Process) : Ensemble Name :=
   Setminus Name (n p) (fn p).
+
+(* fn((z̅y.0 + w̅v.0) | x̅u.0) = {z,y,w,v,x,u} *)
+Example p13_3 : Same_set Name (Singleton Name (str "x")) (Singleton Name (str "x")).
+Proof.
+  auto with *.
+  Qed.
+
+Example p13_4:
+  Same_set Name
+    ( fn([ ({"z"!"y"},∅ + {"w"!"v"},∅) | {"x"!"u"},∅ ]) )
+    ( Union Name
+       (Triple Name (str "z") (str "y") (str "w"))
+       (Triple Name (str "v") (str "x") (str "u")) ).
+Proof.
+
+  Qed.
 
 (* Definition 1.1.3 *)
 Require Import Coq.Sets.Finite_sets.

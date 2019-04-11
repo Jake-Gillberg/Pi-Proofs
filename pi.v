@@ -167,6 +167,20 @@ Proof.
   auto with *.
   Qed.
 
+Require Import Coq.Sets.Powerset_facts.
+Example p13_4_simpl:
+  Same_set Name
+    ( fn([ {"x"!"y"},∅ ]) )
+    ( Couple Name (str "x") (str "y") ).
+Proof.
+  simpl.
+  unfold bn_pi.
+  unfold n_pi, fn_pi.
+  rewrite -> Setminus_Included_empty.
+  auto with *.
+  auto with *.
+  Qed.
+
 Example p13_4:
   Same_set Name
     ( fn([ ({"z"!"y"},∅ + {"w"!"v"},∅) | {"x"!"u"},∅ ]) )
@@ -174,7 +188,29 @@ Example p13_4:
        (Triple Name (str "z") (str "y") (str "w"))
        (Triple Name (str "v") (str "x") (str "u")) ).
 Proof.
-
+  simpl.
+  unfold bn_pi, n_pi, fn_pi.
+  rewrite -> Setminus_Included_empty.
+  rewrite -> Setminus_Included_empty.
+  rewrite -> Setminus_Included_empty.
+  rewrite -> Empty_set_zero.
+  rewrite -> Empty_set_zero.
+  rewrite -> Empty_set_zero.
+  rewrite <- Couple_as_union.
+  rewrite <- Couple_as_union.
+  rewrite <- Couple_as_union.
+  rewrite <- Triple_as_union.
+  rewrite <- Triple_as_union.
+  rewrite -> Union_associative.
+  rewrite -> Union_associative.
+  rewrite -> Union_associative.
+  rewrite -> Union_associative.
+  rewrite -> Union_associative.
+  rewrite -> Union_associative.
+  auto with *.
+  auto with *.
+  auto with *.
+  auto with *.
   Qed.
 
 (* Definition 1.1.3 *)
